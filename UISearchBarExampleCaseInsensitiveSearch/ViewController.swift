@@ -31,7 +31,7 @@ class ViewController: UIViewController, UITableViewDataSource, UISearchBarDelega
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell
     {
-       var myCell = tableView.dequeueReusableCellWithIdentifier("myCell", forIndexPath: indexPath) as! UITableViewCell
+       let myCell = tableView.dequeueReusableCellWithIdentifier("myCell", forIndexPath: indexPath) 
         
         myCell.textLabel?.text = searchResults[indexPath.row]
         
@@ -41,12 +41,12 @@ class ViewController: UIViewController, UITableViewDataSource, UISearchBarDelega
     
     func searchBarSearchButtonClicked(searchBar: UISearchBar)
     {
-         if(searchBar.text.isEmpty)
+         if(searchBar.text!.isEmpty)
          {
             return
          }
         
-        doSearch(searchBar.text)
+        doSearch(searchBar.text!)
         
     }
     
@@ -62,19 +62,19 @@ class ViewController: UIViewController, UITableViewDataSource, UISearchBarDelega
         let postString = "searchWord=\(searchWord)&userId=23";
         request.HTTPBody = postString.dataUsingEncoding(NSUTF8StringEncoding);
         
-        let task = NSURLSession.sharedSession().dataTaskWithRequest(request, completionHandler: { (data:NSData!, response: NSURLResponse!, error:NSError!) -> Void in
+        let task = NSURLSession.sharedSession().dataTaskWithRequest(request, completionHandler: { (data:NSData?, response: NSURLResponse?, error:NSError?) -> Void in
  
             dispatch_async(dispatch_get_main_queue()) {
             
             if error != nil
             {
                 // display an alert message
-                self.displayAlertMessage(error.localizedDescription)
+                self.displayAlertMessage(error!.localizedDescription)
                 return
             }
             
-            var err: NSError?
-            var json = NSJSONSerialization.JSONObjectWithData(data, options: .MutableContainers, error: &err) as? NSDictionary
+         do {
+            let json = try NSJSONSerialization.JSONObjectWithData(data!, options: .MutableContainers) as? NSDictionary
             
             self.searchResults.removeAll(keepCapacity: false)
             self.myTableView.reloadData()
@@ -85,7 +85,7 @@ class ViewController: UIViewController, UITableViewDataSource, UISearchBarDelega
                     {
                         for friendObj in friends
                         {
-                            var fullName = (friendObj["first_name"] as! String) + " " + (friendObj["last_name"] as! String)
+                            let fullName = (friendObj["first_name"] as! String) + " " + (friendObj["last_name"] as! String)
                             
                             self.searchResults.append(fullName)
                         }
@@ -104,9 +104,15 @@ class ViewController: UIViewController, UITableViewDataSource, UISearchBarDelega
                 }
             }
                 
+            } catch {
+                print(error);
             }
             
-        })
+            }
+                
+            
+            })
+         
         
         task.resume()
 
@@ -115,7 +121,7 @@ class ViewController: UIViewController, UITableViewDataSource, UISearchBarDelega
     
     func displayAlertMessage(userMessage: String)
     {
-        var myAlert = UIAlertController(title: "Alert", message: userMessage, preferredStyle: UIAlertControllerStyle.Alert);
+        let myAlert = UIAlertController(title: "Alert", message: userMessage, preferredStyle: UIAlertControllerStyle.Alert);
         let okAction =  UIAlertAction(title: "Ok", style: UIAlertActionStyle.Default, handler: nil)
         myAlert.addAction(okAction);
         self.presentViewController(myAlert, animated: true, completion: nil)
